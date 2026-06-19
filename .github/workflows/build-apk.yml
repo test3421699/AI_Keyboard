@@ -17,17 +17,35 @@ jobs:
       with:
         java-version: '17'
         distribution: 'temurin'
-        cache: gradle
 
-    - name: Grant Execute Permission for Gradle
-      run: chmod +x gradlew
+    - name: Setup Gradle
+      uses: gradle/actions/setup-gradle@v4
 
-    - name: Compile Debug APK
-      run: ./gradlew assembleDebug
+    - name: Locate Project and Compile
+      run: |
+        # Search for the actual Android project root directory
+        PROJECT_ROOT=$(find . -name "settings.gradle" -o -name "settings.gradle.kts" | head -n 1 | xargs dirname)
+        
+        if [ -z "$PROJECT_ROOT" ]; then
+          echo "Could not find settings.gradle, defaulting to root directory."
+          PROJECT_ROOT="."
+        fi
+        
+        echo "Navigating into project folder: $PROJECT_ROOT"
+        cd "$PROJECT_ROOT"
+        
+        # Build using wrapper if present, otherwise fall back to system gradle
+        if [ -f "./gradlew" ]; then
+          echo "Gradle wrapper found. Running build..."
+          chmod +x gradlew
+          ./gradlew assembleDebug
+        else
+          echo "Gradle wrapper missing. Falling back to runner's built-in Gradle..."
+          gradle assembleDebug
+        fi
 
     - name: Upload APK Artifact
       uses: actions/upload-artifact@v4
       with:
         name: AI-Studio-App-APK
-        path: app/build/outputs/apk/debug/*.apk
-        
+        path: "**/build/outputs/apk/debug/*.apk"
