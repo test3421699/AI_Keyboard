@@ -21,7 +21,7 @@ jobs:
     - name: Setup Gradle
       uses: gradle/actions/setup-gradle@v4
 
-    - name: Locate Project and Compile
+    - name: Locate Project, Generate Keystore, and Compile
       run: |
         # Search for the actual Android project root directory
         PROJECT_ROOT=$(find . -name "settings.gradle" -o -name "settings.gradle.kts" | head -n 1 | xargs dirname)
@@ -33,6 +33,15 @@ jobs:
         
         echo "Navigating into project folder: $PROJECT_ROOT"
         cd "$PROJECT_ROOT"
+        
+        # Generate a dummy debug keystore because the project configuration explicitly requires it
+        if [ ! -f "debug.keystore" ]; then
+          echo "Generating missing debug.keystore..."
+          keytool -genkey -v -keystore debug.keystore \
+            -storepass android -alias androiddebugkey -keypass android \
+            -keyalg RSA -keysize 2048 -validity 10000 \
+            -dname "CN=Android Debug,O=Android,C=US"
+        fi
         
         # Build using wrapper if present, otherwise fall back to system gradle
         if [ -f "./gradlew" ]; then
