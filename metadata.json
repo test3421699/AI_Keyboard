@@ -1,0 +1,6 @@
+{
+  "name": "Gemini Keyboard",
+  "description": "An Android custom keyboard powered by Gemini AI for on-the-fly grammar correction and fact-checking.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
